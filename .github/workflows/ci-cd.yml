@@ -106,6 +106,7 @@ jobs:
       IMAGE_NAME: ghcr.io/les-petits-foufou/tp-ci-cd
       DATABASE_URL: $${{ secrets.DATABASE_URL }}
       JWT_SECRET: $${{ secrets.JWT_SECRET }}
+      NODE_ENV: production
     steps:
       - uses: actions/checkout@v4
   
@@ -116,8 +117,13 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
   
-      - name: Deploy
+      - name: Deploy Application
         run: |
+          # Récupérer la dernière image
           docker compose -f docker/docker-compose.yml pull
+          
+          # Arrêter et supprimer les containers existants
           docker compose -f docker/docker-compose.yml down
+          
+          # Démarrer les containers en arrière-plan
           docker compose -f docker/docker-compose.yml up -d
