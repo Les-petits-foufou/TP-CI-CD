@@ -97,28 +97,38 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+# JOB 3 : DÉPLOIEMENT SUR VM GCP
   deploy:
-    name: Deploy Application
+    name: Deploy to VM
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
-    env:
-      IMAGE_NAME: ghcr.io/les-petits-foufou/tp-ci-cd
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      JWT_SECRET: ${{ secrets.JWT_SECRET }}
-      NODE_ENV: production
+    
     steps:
-      - uses: actions/checkout@v4
-  
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v2
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-  
-      - name: Deploy
-        run: |
-          docker compose -f docker/docker-compose.yml pull
-          docker compose -f docker/docker-compose.yml down
-          docker compose -f docker/docker-compose.yml up -d
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USERNAME }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: 22
+          # On passe les variables nécessaires au script
+          envs: GITHUB_USERNAME,GITHUB_TOKEN
+          script: |
+            # 1. Se connecter au registre d'images GitHub
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # 2. Télécharger la dernière version de l'image
+            docker pull ghcr.io/${{ github.repository }}:latest
+
+            # 3. Arrêter l'ancien conteneur s'il existe
+            docker stop api-container || true
+            docker rm api-container || true
+
+            # 4. Lancer le nouveau site
+            docker run -d \
+              --name api-container \
+              --restart always \
+              -p 3000:3000 \
+              -e DATABASE_URL="${{ secrets.TEST_DATABASE_URL }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              ghcr.io/${{ github.repository }}:latest
