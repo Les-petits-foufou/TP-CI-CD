@@ -17,23 +17,22 @@ RUN npx prisma generate
 RUN npm run build
 
 # ==========================================
-# Stage 3: Runner (Production) - C'EST ICI QU'ON MODIFIE
+# Stage 3: Runner (Production)
 # ==========================================
 FROM node:20-slim AS runner
 WORKDIR /app
 
-# --- AJOUT DU FIX OPENSSL ICI ---
+# On garde le fix OpenSSL (TRES IMPORTANT)
 RUN apt-get update -y && apt-get install -y openssl ca-certificates
-# --------------------------------
 
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package.json ./package.json
 
-# Variable d'environnement pour la prod
 ENV NODE_ENV=production
 ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["ls", "-R", "dist"]
+# CORRECTION DU CHEMIN ICI : on ajoute /api/
+CMD ["node", "dist/api/main.js"]
