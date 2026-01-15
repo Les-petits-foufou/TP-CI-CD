@@ -68,6 +68,11 @@ les-petits-foufou-tp-ci-cd/
 │   └── workflows/
 │       └── ci-cd.yml             # Pipeline CI/CD GitHub Actions
 │
+├── .scripts/
+│   ├── build.sh
+│   ├── deploy.sh
+│   └── test.sh
+│
 ├── .dockerignore
 ├── .eslintrc.json
 ├── .prettierrc
