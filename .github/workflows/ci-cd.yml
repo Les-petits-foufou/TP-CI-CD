@@ -111,24 +111,24 @@ jobs:
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
           port: 22
-          # On passe les variables nécessaires au script
           envs: GITHUB_USERNAME,GITHUB_TOKEN
           script: |
-            # 1. Se connecter au registre d'images GitHub
+            # 1. Login
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # 2. Télécharger la dernière version de l'image
-            docker pull ghcr.io/${{ github.repository }}:latest
+            # 2. Pull (ATTENTION : TOUT EN MINUSCULE ICI)
+            # On remplace la variable automatique par le nom en dur et en minuscule
+            docker pull ghcr.io/les-petits-foufou/tp-ci-cd:latest
 
-            # 3. Arrêter l'ancien conteneur s'il existe
+            # 3. Arrêt
             docker stop api-container || true
             docker rm api-container || true
 
-            # 4. Lancer le nouveau site
+            # 4. Run (TOUT EN MINUSCULE ICI AUSSI)
             docker run -d \
               --name api-container \
               --restart always \
               -p 3000:3000 \
               -e DATABASE_URL="${{ secrets.TEST_DATABASE_URL }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-              ghcr.io/${{ github.repository }}:latest
+              ghcr.io/les-petits-foufou/tp-ci-cd:latest
