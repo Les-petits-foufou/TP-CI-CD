@@ -142,6 +142,17 @@ ghcr.io/les-petits-foufou/tp-ci-cd:latest
 Les images Docker sont stockées sur **GitHub Container Registry (GHCR)**.
 
 ---
+## Installation et Exécution locale 
+
+Des scripts automatisés sont disponibles dans le dossier `scripts/` pour tester le projet localement avant de pousser sur GitHub. 
+
+### Prérequis- Node.js 20+- Docker installé et lancé 
+
+### 1. Lancer la suite de tests (CI Simulation)Ce script installe les dépendances, prépare la base de données, lance le linter et les tests unitaires.
+
+```bash
+./scripts/test.sh
+```
 
 ## CD – Continuous Deployment
 
